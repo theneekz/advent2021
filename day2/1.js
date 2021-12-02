@@ -51,4 +51,4 @@ const [x, y] = inputArr.reduce(
   [0, 0]
 );
 
-console.log(x * y);
+console.log(x * y); //1947824

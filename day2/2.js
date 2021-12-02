@@ -48,4 +48,4 @@ const { x, y } = inputArr.reduce(
   { x: 0, y: 0, aim: 0 }
 );
 
-console.log(x * y);
+console.log(x * y); //1813062561
