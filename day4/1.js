@@ -65,11 +65,6 @@ const bingoInput = inputArray[0].split(",").map((x) => parseInt(x, 10));
 let bingoBoards = inputArray.slice(1).map((board) => {
   board = board.split("\n");
   return board.map((row) => {
-    // return row.split(" ").map((x, i, arr) => {
-    //   if (x !== "") {
-    //     return parseInt(x, 10);
-    //   }
-    // });
     return row
       .split(" ")
       .filter((x) => x !== "")
