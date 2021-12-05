@@ -33,7 +33,7 @@ The epsilon rate is calculated in a similar way; rather than use the most common
 Use the binary numbers in your diagnostic report to calculate the gamma rate and epsilon rate, then multiply them together. What is the power consumption of the submarine? (Be sure to represent your answer in decimal, not binary.)
 */
 
-const getInputArray = require("../getInputArray");
+const { getInputArray } = require("../utils");
 //nested array of binary input, split into digits
 const inputArray = getInputArray(__dirname).map((x) =>
   x.split("").map((i) => parseInt(i, 10))
