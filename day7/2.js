@@ -23,7 +23,6 @@ Determine the horizontal position that the crabs can align to using the least fu
 
 const { getInput } = require("../utils");
 const input = getInput(__dirname);
-// const input = "16,1,2,0,4,2,7,1,2,14";
 const inputArr = input
   .split(",")
   .map((x) => parseInt(x))
@@ -33,21 +32,21 @@ const maxCrab = inputArr[inputArr.length - 1];
 let leastFuel;
 let fuelForPosition = 0;
 
-const initialHash = {
+//helps convert distance (keys) to fuel (values)
+const fuelCalculator = {
   0: 0,
-  1: 1,
-  2: 3,
+  //1: 1,
+  //2: 3,
+  //etc.
 };
 
 //get fuel for this distance traveled
-const getFuel = (num, hash = initialHash) => {
+const getFuel = (num) => {
   // If the hash table doesn't contain this num yet, calculate it
-  if (hash[num] === undefined) {
-    //The hash table is passed by reference so we are able to add to it at any function call in the stack
-    hash[num] = getFuel(num - 1, hash) + num;
+  if (fuelCalculator[num] === undefined) {
+    fuelCalculator[num] = getFuel(num - 1) + num;
   }
-
-  return hash[num];
+  return fuelCalculator[num];
 };
 
 //for all possible crab positions
