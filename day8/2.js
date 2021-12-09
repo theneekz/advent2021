@@ -52,7 +52,6 @@ For each entry, determine all of the wire/segment connections and decode the fou
 
 const { getInput } = require("../utils");
 const inputLines = getInput(__dirname, "/input.txt");
-// const inputLines = getInput(__dirname, "/test2.txt");
 const lines = inputLines.split("\n");
 
 const uniques = {
@@ -115,7 +114,8 @@ for (line of lines) {
 
   //only leaves 0 at length 6
   input.forEach((signal) => {
-    if (signal.length === 6) {
+    const isNot6or9 = signal !== signalMap[6] && signal !== signalMap[9];
+    if (signal.length === 6 && isNot6or9) {
       signalMap[0] = signal;
     }
     // 2, 3, 5 all have length of five
@@ -136,6 +136,7 @@ for (line of lines) {
       }
     }
   });
+
   //  if all other numbers are found
   //    -> 2
 
@@ -152,8 +153,8 @@ for (line of lines) {
   }, "");
 
   runningTotal += parseInt(total, 10);
-  console.log(runningTotal);
 }
+console.log(runningTotal);
 
 //possible optimization - convert to binary like decimal and subtract to find letters in common
 
