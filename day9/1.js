@@ -59,4 +59,4 @@ for (let row = 0; row < input.length; row++) {
     }
   }
 }
-console.log(overallRisk);
+console.log(overallRisk); //456
