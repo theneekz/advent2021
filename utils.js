@@ -1,14 +1,14 @@
 const fs = require("fs");
 
-const getInputArray = (directory) => {
-  const input = fs.readFileSync(directory + "/input.txt", "utf8");
-  const inputArr = input.split("\n");
-  return inputArr;
-};
-
 const getInput = (directory, filename = "/input.txt") => {
   const input = fs.readFileSync(directory + filename, "utf8");
   return input;
+};
+
+const getInputArray = (directory, filename = "/input.txt") => {
+  const input = getInput(directory, filename);
+  const inputArr = input.split("\n");
+  return inputArr;
 };
 
 const print = (input) => {
