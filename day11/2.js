@@ -106,26 +106,13 @@ const handleAbsorbFlash = (row, col) => {
   }
 };
 
-const printGrid = (arr) => {
-  for (const r in arr) {
-    let row = "";
-    for (const c in arr) {
-      row += arr[r][c];
-    }
-    console.log(row);
-  }
-  console.log("\n");
-};
-
 let steps = 0;
 
-// printGrid(grid);
+//when all octupi flash
 while (flashes !== 100) {
-  //when all octupi flash
   flashes = 0;
   step();
   steps++;
-  // printGrid(grid);
 }
 
 console.log("steps:", steps); //210
