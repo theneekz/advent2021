@@ -46,4 +46,4 @@ for (const foldingDirection of foldingDirections) {
 }
 
 console.log(inputCoords); //PGHRKLKL (see graph)
-console.log("Time", Date.now() - start, "ms"); //7
+console.log("Time", Date.now() - start, "ms"); //16
