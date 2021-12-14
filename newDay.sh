@@ -7,7 +7,7 @@ echo "/*
 
 */
 const {getInput, getInputArray, print} = require('../utils');
-const input = getInput(__dirname, '/test.txt');
+const input = getInput(__dirname, '/test1.txt');
 const start = Date.now();
 
 console.log('Time', Date.now() - start, 'ms');
