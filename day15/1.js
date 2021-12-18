@@ -33,7 +33,144 @@ The total risk of this path is 40 (the starting position is never entered, so it
 What is the lowest total risk of any path from the top left to the bottom right?
 */
 const { getInput, getInputArray, print } = require("../utils");
-const input = getInput(__dirname, "/test1.txt");
+const input = getInputArray(__dirname).map((x) =>
+  x.split("").map((n) => Number(n))
+);
 const start = Date.now();
 
-console.log("Time", Date.now() - start, "ms");
+// Dijkstra's shortest path algo: https://youtu.be/pVfj6mxhdMw
+
+/*
+Let distance of start coord from start coord = input[0][0]
+Let distance of all other coords from start = infinity
+
+While all coords have not been visited,
+  Visit the unvisited coords with the smallest known distance from the start
+  For the current coord, examine the unvisited neighbors
+  For the current coord, calc distance of each neighbor from start
+  If the calc dist of a coord is less than the known dist, update
+  Update the prev coord if the dist is updated
+  Add the current coord to the list of visited vertices
+*/
+
+//helper for turning coordinates into a string/back to an array to be stored/read
+//as keys from an object
+const f = (coord) => {
+  if (typeof coord === "string") {
+    return JSON.parse(coord);
+  } else {
+    return JSON.stringify(coord);
+  }
+};
+
+let visited = [];
+let unvisited = [];
+let lookup = {};
+
+input.forEach((row, rowIndex) => {
+  row.forEach((col, colIndex) => {
+    const coordArr = [rowIndex, colIndex];
+    const coordStr = f(coordArr);
+    const isStart = coordStr === "[0,0]";
+
+    unvisited.push(f([rowIndex, colIndex]));
+
+    lookup[coordStr] = {
+      visited: false,
+      distanceFromStart: isStart ? 0 : Infinity,
+      prevCoord: null,
+      position: coordArr,
+    };
+  });
+});
+
+const getUnvisitedShortestLength = () => {
+  const entries = Object.entries(lookup);
+  let result = {};
+  entries.forEach(([key, val]) => {
+    const { visited, distanceFromStart } = val;
+    if (JSON.stringify(result) === "{}" && visited === false) {
+      result = lookup[key];
+    } else if (
+      distanceFromStart < result.distanceFromStart &&
+      visited === false
+    ) {
+      result = lookup[key];
+    }
+  });
+  return result;
+};
+
+const hasCoordBeenVisited = (coord) => {
+  if (typeof coord !== "string") {
+    coord = f(coord);
+  }
+  return lookup[coord].visited;
+};
+
+const getNeighbors = (coord, allowVisited = false) => {
+  if (typeof coord === "string") {
+    coord = f(coord);
+  }
+  let [row, col] = coord;
+  let neighbors = [];
+  if (row !== 0) {
+    let neighborUp = [row - 1, col];
+    if (!hasCoordBeenVisited(neighborUp)) {
+      neighbors.push(neighborUp);
+    }
+  }
+  if (row !== input.length - 1) {
+    let neighborDown = [row + 1, col];
+    if (!hasCoordBeenVisited(neighborDown)) {
+      neighbors.push(neighborDown);
+    }
+  }
+  if (col !== 0) {
+    let neighborLeft = [row, col - 1];
+    if (!hasCoordBeenVisited(neighborLeft)) {
+      neighbors.push(neighborLeft);
+    }
+  }
+  if (col !== input.length - 1) {
+    let neighborRight = [row, col + 1];
+    if (!hasCoordBeenVisited(neighborRight)) {
+      neighbors.push(neighborRight);
+    }
+  }
+  return neighbors;
+};
+
+const updateDistanceForNeighbor = (coord, distanceToAdd, prev) => {
+  if (typeof coord !== "string") {
+    coord = f(coord);
+  }
+  let { distanceFromStart, position } = lookup[coord];
+  let [row, col] = position;
+  let newDistance = input[row][col];
+  let newTotal = newDistance + distanceToAdd;
+  if (newTotal < distanceFromStart) {
+    lookup[coord].distanceFromStart = newTotal;
+    lookup[coord].prevCoord = prev;
+  }
+};
+
+while (unvisited.length) {
+  const current = getUnvisitedShortestLength();
+  const { distanceFromStart, position } = current;
+  console.log("current:", position);
+  const coordStr = f(position);
+  const neighbors = getNeighbors(position);
+
+  neighbors.forEach((neighbor) => {
+    updateDistanceForNeighbor(neighbor, distanceFromStart, coordStr);
+  });
+
+  const indexOfCurrent = unvisited.indexOf(coordStr);
+  unvisited.splice(indexOfCurrent, 1);
+  lookup[coordStr].visited = true;
+  visited.push(coordStr);
+}
+
+console.log(lookup["[99,99]"].distanceFromStart); //562
+console.log("Time", Date.now() - start, "ms"); //100528 ms
