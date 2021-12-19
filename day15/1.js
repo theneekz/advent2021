@@ -32,6 +32,7 @@ The total risk of this path is 40 (the starting position is never entered, so it
 
 What is the lowest total risk of any path from the top left to the bottom right?
 */
+const Heap = require("heap");
 const { getInput, getInputArray, print } = require("../utils");
 const input = getInputArray(__dirname).map((x) =>
   x.split("").map((n) => Number(n))
@@ -66,6 +67,7 @@ const f = (coord) => {
 let visited = [];
 let unvisited = [];
 let lookup = {};
+let heap = new Heap((a, b) => a.distanceFromStart - b.distanceFromStart);
 
 input.forEach((row, rowIndex) => {
   row.forEach((col, colIndex) => {
@@ -74,31 +76,24 @@ input.forEach((row, rowIndex) => {
     const isStart = coordStr === "[0,0]";
 
     unvisited.push(f([rowIndex, colIndex]));
-
-    lookup[coordStr] = {
+    let defaultObj = {
       visited: false,
       distanceFromStart: isStart ? 0 : Infinity,
       prevCoord: null,
       position: coordArr,
     };
+
+    lookup[coordStr] = {
+      ...defaultObj,
+    };
+    if (isStart) {
+      heap.push({ ...defaultObj });
+    }
   });
 });
 
 const getUnvisitedShortestLength = () => {
-  const entries = Object.entries(lookup);
-  let result = {};
-  entries.forEach(([key, val]) => {
-    const { visited, distanceFromStart } = val;
-    if (JSON.stringify(result) === "{}" && visited === false) {
-      result = lookup[key];
-    } else if (
-      distanceFromStart < result.distanceFromStart &&
-      visited === false
-    ) {
-      result = lookup[key];
-    }
-  });
-  return result;
+  return heap.pop();
 };
 
 const hasCoordBeenVisited = (coord) => {
@@ -152,13 +147,15 @@ const updateDistanceForNeighbor = (coord, distanceToAdd, prev) => {
   if (newTotal < distanceFromStart) {
     lookup[coord].distanceFromStart = newTotal;
     lookup[coord].prevCoord = prev;
+    heap.push(lookup[coord]);
+    // heap.heapify();
   }
 };
 
 while (unvisited.length) {
   const current = getUnvisitedShortestLength();
   const { distanceFromStart, position } = current;
-  console.log("current:", position);
+  // console.log("current:", position);
   const coordStr = f(position);
   const neighbors = getNeighbors(position);
 
@@ -173,4 +170,4 @@ while (unvisited.length) {
 }
 
 console.log(lookup["[99,99]"].distanceFromStart); //562
-console.log("Time", Date.now() - start, "ms"); //100528 ms
+console.log("Time", Date.now() - start, "ms"); //182 ms
