@@ -5,6 +5,7 @@ const smallInput = getInputArray(__dirname).map((row) =>
 );
 let input = [];
 const incrementRule = (num) => (num > 9 ? num % 9 || 1 : num);
+
 smallInput.forEach((row, rowIndex) => {
   let rowLen = row.length;
   let colLen = smallInput.length;
@@ -51,6 +52,7 @@ let unvisited = [];
 let lookup = {};
 let heap = new Heap((a, b) => a.distanceFromStart - b.distanceFromStart);
 
+console.time("setup");
 input.forEach((row, rowIndex) => {
   row.forEach((col, colIndex) => {
     const coordArr = [rowIndex, colIndex];
@@ -73,6 +75,7 @@ input.forEach((row, rowIndex) => {
     }
   });
 });
+console.timeEnd("setup");
 
 const getUnvisitedShortestLength = () => {
   return heap.pop();
@@ -133,8 +136,9 @@ const updateDistanceForNeighbor = (coord, distanceToAdd, prev) => {
     // heap.heapify();
   }
 };
-
+let i = 0;
 while (unvisited.length) {
+  console.log("visiting", i++, "out of", 500 * 500);
   const current = getUnvisitedShortestLength();
   const { distanceFromStart, position } = current;
   // console.log("current:", position);
