@@ -82,32 +82,130 @@ Here are a few more examples of hexadecimal-encoded transmissions:
 C0015000016115A2E0802F182340 has the same structure as the previous example, but the outermost packet uses a different length type ID. This packet has a version sum of 23.
 A0016C880162017C3686B18A3D4780 is an operator packet that contains an operator packet that contains an operator packet that contains five literal values; it has a version sum of 31.
 Decode the structure of your hexadecimal-encoded BITS transmission; what do you get if you add up the version numbers in all packets?
-
 */
-const { getInput, getInputArray, print } = require("../utils");
-const input = getInput(__dirname, "/test1.txt");
-const start = Date.now();
-const hex = "D2FE28";
-//convert hexadecimal into binary
-const hexAsDecimal = parseInt(hex, 16);
-// console.log(parseInt(hex, 16));
-const hexAsBinary = (hexAsDecimal >>> 0).toString(2);
-console.log("binary:", hexAsBinary);
-//first three digits are version
-const version = hexAsBinary.slice(0, 3);
-//next three digits are type id
-const typeId = hexAsBinary.slice(3, 6);
-//if type id === 4 (100 in binary), it is a literal value
-const isLiteral = typeId === "100";
-if (isLiteral) {
-  //the rest of the packet are groups which prefix 1 or 0 before the 4 actual digits
-  //1 means it is not the last group of 4
-  //0 means it is the last group of four
-  //sometimes there are trailing 0s
-}
-//type id !== 4 means it's an operator, contians sub packets
-//the digit right after the header indicates the length of the next number
-//0 - use the next 15 bits to determine the decimal number
-//1 - use the next 11 bits to determine
 
-console.log("Time", Date.now() - start, "ms");
+const { getInput, getInputArray, print } = require("../utils");
+const hex = getInput(__dirname);
+const start = Date.now();
+
+let allVersions = 0;
+
+const hexLookUp = {
+  0: "0000",
+  1: "0001",
+  2: "0010",
+  3: "0011",
+  4: "0100",
+  5: "0101",
+  6: "0110",
+  7: "0111",
+  8: "1000",
+  9: "1001",
+  A: "1010",
+  B: "1011",
+  C: "1100",
+  D: "1101",
+  E: "1110",
+  F: "1111",
+};
+const getBinaryForHex = (x) => {
+  let result = "";
+  for (const char of x.split("")) {
+    result += hexLookUp[char];
+  }
+  return result;
+};
+const getBinaryForInt = (x) => (x >>> 0).toString(2);
+const getIntForBinary = (x) => parseInt(x, 2);
+
+//convert hexadecimal into binary
+const hexAsBinary = getBinaryForHex(hex);
+
+const handleLiteral = (fullBinary) => {
+  const literal = fullBinary.slice(6);
+  //the rest of the packet are groups which prefix 1 or 0 before the 4 actual digits
+  let hasMoreChunks = true;
+  let leftIdx = 0;
+  let fullVal = "";
+  while (hasMoreChunks) {
+    const chunk = literal.slice(leftIdx, leftIdx + 5);
+    //1 means it is not the last group of 4
+    //0 means it is the last group of four
+    const isLast = chunk.slice(0, 1) === "0";
+    const newDigits = chunk.slice(1);
+    fullVal += newDigits;
+    if (isLast) {
+      hasMoreChunks = false;
+      return {
+        literalLength: leftIdx + 5,
+        remaining: literal.slice(leftIdx + 5),
+      };
+    }
+    leftIdx += 5;
+  }
+};
+
+const handleOperator = (fullBinary) => {
+  const operator = fullBinary.slice(6);
+  //the digit right after the header indicates the length of the next number
+  const lengthTypeId = operator.slice(0, 1);
+  //0 - use the next 15 bits to determine the decimal number
+  //1 - use the next 11 bits to determine
+  const lengthTypeDigits = lengthTypeId === "1" ? 11 : 15;
+  let lengthTypeVal = operator.slice(1, lengthTypeDigits + 1); //binary
+  lengthTypeVal = parseInt(lengthTypeVal, 2); // decimal
+  return { remaining: operator.slice(lengthTypeDigits + 1), lengthTypeVal };
+};
+
+const parsePacket = ({ packet, charLength, subPacketCount }) => {
+  // console.log({ packet, charLength, subPacketCount });
+  if ((charLength && charLength < 1) || packet.length < 1) {
+    console.log("ran out of digits:", charLength);
+    return;
+  }
+
+  //first three digits are version
+  let version = packet.slice(0, 3);
+  version = getIntForBinary(version);
+  // console.log("adding to all versions:", version);
+  allVersions += version;
+
+  //next three digits are type id
+  const typeId = packet.slice(3, 6);
+
+  //if type id === 4 (100 in binary), it is a literal value
+  const isLiteral = typeId === "100";
+
+  if (isLiteral) {
+    // console.log("found literal");
+    const { remaining, literalLength } = handleLiteral(packet);
+    const isAllZeros = remaining.indexOf("1") === -1;
+    if (!isAllZeros) {
+      const newCharLength = charLength ? charLength - literalLength : null;
+      const newPacketCount = subPacketCount ? subPacketCount - 1 : null;
+      return parsePacket({
+        packet: remaining,
+        charLength: newCharLength,
+        subPacketCount: newPacketCount,
+      });
+    }
+  } else {
+    // console.log("found operator");
+    //type id !== 4 means it's an operator, contians sub packets
+    const { remaining, lengthTypeVal } = handleOperator(packet);
+    const removed = packet.length - remaining.length;
+    const newCharLength = charLength ? charLength - removed : null;
+    const newPacketCount = subPacketCount ? subPacketCount - 1 : null;
+    return parsePacket({
+      packet: remaining,
+      charLength: newCharLength,
+      subPacketCount: newPacketCount,
+    });
+  }
+};
+
+parsePacket({ packet: hexAsBinary });
+
+console.log({ allVersions }); //929
+
+console.log("Time", Date.now() - start, "ms"); //7
